@@ -15,6 +15,7 @@ from fourwire import FourWire
 from adafruit_display_text import label, scrolling_label
 import adafruit_ili9341
 from xpt2046 import Touch
+from adafruit_button import Button
 
 TFT_WIDTH = 320
 TFT_HEIGHT = 240
@@ -56,6 +57,10 @@ touching = False
     
 
 async def handle_touch():
+    global NxTick
+    global touchEvent
+    global touchedX, touchedY
+    cc = ConsumerControl(usb_hid.devices)
     while True:
         curTick = time.monotonic()
         if curTick >= NxTick:
@@ -71,6 +76,8 @@ async def handle_touch():
             if touchEvent == EVT_PenUp:
                 print('ev PenUp - ')
                 
+                cc.send(ConsumerControlCode.PLAY_PAUSE)
+                
             touchEvent = EVT_NO
 
         await asyncio.sleep(0)
@@ -83,7 +90,7 @@ def touch_det_task():
     global touchedX, touchedY
     global touchDb
     
-    validXY = valid_touch(TFT_WIDTH, TFT_HEIGHT)
+    validXY = valid_touch(TFT_HEIGHT, TFT_WIDTH)
 
     if touchSt == touchSt_Idle_0:
         if validXY != None:
@@ -164,6 +171,36 @@ async def render_display():
     title_label.y = 20
     text_group.append(title_label)
     splash.append(text_group)
+
+
+    
+    # --| Button Config |-------------------------------------------------
+    BUTTON_X = 95
+    BUTTON_Y = 95
+    BUTTON_WIDTH = 50
+    BUTTON_HEIGHT = 50
+    BUTTON_STYLE = Button.RECT
+    BUTTON_FILL_COLOR = 0x00FFFF
+    BUTTON_OUTLINE_COLOR = 0xFF00FF
+    BUTTON_LABEL = "PLAY"
+    BUTTON_LABEL_COLOR = 0x000000
+
+    # --| Button Config |-------------------------------------------------
+
+    # Make the button
+    button = Button(
+        x=BUTTON_X,
+        y=BUTTON_Y,
+        width=BUTTON_WIDTH,
+        height=BUTTON_HEIGHT,
+        style=BUTTON_STYLE,
+        fill_color=BUTTON_FILL_COLOR,
+        outline_color=BUTTON_OUTLINE_COLOR,
+        label=BUTTON_LABEL,
+        label_font=terminalio.FONT,
+        label_color=BUTTON_LABEL_COLOR,
+    )
+    splash.append(button)
 
     while True:
         if usb_cdc.data.in_waiting > 0:
