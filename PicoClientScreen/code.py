@@ -16,6 +16,7 @@ from adafruit_display_text import label, scrolling_label
 import adafruit_ili9341
 from xpt2046 import Touch
 from adafruit_button import Button
+import pwmio
 
 TFT_WIDTH = const(320)
 TFT_HEIGHT = const(240)
@@ -140,6 +141,9 @@ async def handle_touch(touch_context, play_button):
 
 async def render_display(play_button):
     displayio.release_displays()
+    
+    pwm = pwmio.PWMOut(board.GP16)
+    pwm.duty_cycle = 2 ** 12
 
     tft_spi_clk = board.GP6
     tft_spi_mosi = board.GP7
